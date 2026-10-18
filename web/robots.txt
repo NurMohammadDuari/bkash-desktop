@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://bkash-desktop.example/sitemap.xml
+Sitemap: https://nurmohammadduari.github.io/bkash-desktop/sitemap.xml

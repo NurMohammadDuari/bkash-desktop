@@ -3,7 +3,13 @@ name = "bkash-native"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.75"
-description = "Native Rust port scaffold for bKash 7.3.5 (com.bKash.customerapp) + offline AOT/ELF artifact analyzer"
+description = "Native Rust reimplementation of the bKash Android client - runs on Linux, Windows and macOS with no emulator. Includes a dependency-free Dart AOT snapshot decoder and ELF artifact analyzer."
+keywords = ["bkash", "desktop", "rust", "no-emulator", "reverse-engineering", "dart-aot", "flutter", "egui", "bangladesh", "elf", "reimplementation"]
+categories = ["command-line-utilities", "development-tools"]
+homepage = "https://github.com/NurMohammadDuari/bkash-desktop"
+repository = "https://github.com/NurMohammadDuari/bkash-desktop"
+documentation = "https://github.com/NurMohammadDuari/bkash-desktop/tree/main/docs"
+readme = "README.md"
 license = "MIT"
 
 [dependencies]
