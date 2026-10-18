@@ -51,19 +51,21 @@ fn main() -> Result<()> {
             let mobile = args.get(1).cloned().unwrap_or_default();
             let otp = args.get(2).cloned().unwrap_or_default();
             let mobile = domain::normalize_mobile(&mobile).unwrap_or(mobile);
-            let gw = Gateway::new(
+            // The gateway here only exists to print request shapes; the dry-run
+            // transport below decides nothing reaches the network.
+            let _gw = Gateway::new(
                 Arc::new(DryRun),
                 Gateway::default_base().to_string(),
                 DeviceIdentity::default(),
             );
-            println!("POST {}{}", gw_base(&gw), "otp/send");
+            println!("POST {}otp/send", gw_base());
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({
                     "mobile_number": mobile, "code_length": 6
                 }))?
             );
-            println!("\nPOST {}{}", gw_base(&gw), "otp/verify");
+            println!("\nPOST {}otp/verify", gw_base());
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({
@@ -97,9 +99,10 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn gw_base(_gw: &Gateway) -> &str {
-    // `url` is private; reconstruct the documented default for display only.
-    &Gateway::default_base()
+/// Display-only base URL. `Gateway::url` is private by design; the default is
+/// what the client targets anyway.
+fn gw_base() -> &'static str {
+    Gateway::default_base()
 }
 
 /// Prints requests instead of sending them. The safe default.

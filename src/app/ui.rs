@@ -247,7 +247,7 @@ impl BkashApp {
                     ui.horizontal(|ui| {
                         ui.colored_label(
                             if is_sim { t.positive } else { t.warning },
-                            RichText::new(if is_sim { "●" } else { "●" }).size(11.0),
+                            RichText::new("●").size(11.0),
                         );
                         ui.label(
                             RichText::new(format!("{} backend", self.backend.name())).size(12.0),

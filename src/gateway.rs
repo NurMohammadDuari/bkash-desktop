@@ -226,20 +226,20 @@ impl Gateway {
         code_length: u8,
     ) -> Result<GatewayResponse<serde_json::Value>> {
         let body = serde_json::json!({ "mobile_number": mobile, "code_length": code_length });
-        Ok(self.call("POST", "otp/send", Some(&body))?)
+        self.call("POST", "otp/send", Some(&body))
     }
 
     pub fn verify_otp(&self, mobile: &str, otp: &str) -> Result<GatewayResponse<AccessToken>> {
         let body = serde_json::json!({ "mobile_number": mobile, "otp": otp });
-        Ok(self.call("POST", "otp/verify", Some(&body))?)
+        self.call("POST", "otp/verify", Some(&body))
     }
 
     pub fn device_fingerprint(&self) -> Result<GatewayResponse<serde_json::Value>> {
-        Ok(self.call("GET", "auth/device-fingerprint", None)?)
+        self.call("GET", "auth/device-fingerprint", None)
     }
 
     pub fn logout(&self) -> Result<GatewayResponse<serde_json::Value>> {
-        Ok(self.call("POST", "auth/logout", Some(&serde_json::json!({})))?)
+        self.call("POST", "auth/logout", Some(&serde_json::json!({})))
     }
 }
 

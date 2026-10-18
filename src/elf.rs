@@ -267,7 +267,7 @@ mod tests {
         let shstr_off = 0x300usize;
         let text_off = 0x400usize;
 
-        let symtab = vec![0u8; 24 * 2];
+        let symtab_len = 24 * 2;
         let dynsym_off = 0x500usize;
 
         let mut buf = vec![0u8; shoff + SHNUM * shentsize];
@@ -295,7 +295,7 @@ mod tests {
             };
 
         put(1, 19, 3, dynstr_off as u64, dynstr.len() as u64, 0, 0);
-        put(2, 11, 11, dynsym_off as u64, symtab.len() as u64, 1, 24);
+        put(2, 11, 11, dynsym_off as u64, symtab_len as u64, 1, 24);
         put(3, 1, 3, shstr_off as u64, shstr.len() as u64, 0, 0);
         put(4, 27, 1, text_off as u64, payload.len() as u64, 0, 0);
 
@@ -303,7 +303,7 @@ mod tests {
             + dynstr
                 .len()
                 .max(shstr.len())
-                .max(symtab.len())
+                .max(symtab_len)
                 .max(payload.len());
         buf.resize(need.max(buf.len()), 0);
         buf[dynstr_off..dynstr_off + dynstr.len()].copy_from_slice(dynstr);

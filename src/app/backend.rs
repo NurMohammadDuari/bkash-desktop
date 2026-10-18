@@ -205,22 +205,11 @@ impl Backend for SimulatedBackend {
         amount: Bdt,
     ) -> Result<Transaction, BackendError> {
         let to = normalize_mobile(to_mobile).ok_or(BackendError::BadMobile)?;
-        validate_amount(
-            amount,
-            self.balance(&Session {
-                account: Account {
-                    name: String::new(),
-                    masked_mobile: String::new(),
-                    balance: Bdt::ZERO,
-                },
-                token: String::new(),
-            })
-            .unwrap_or(Bdt::ZERO),
-        )
-        .or_else(|e| match e {
-            BackendError::InsufficientFunds => Err(BackendError::InsufficientFunds),
-            other => Err(other),
-        })?;
+        let balance = self.state.lock().expect("sim state lock").balance;
+        if balance <= Bdt::ZERO {
+            return Err(BackendError::NoFunds);
+        }
+        validate_amount(amount, balance)?;
         Ok(self.record(TxKind::SendMoney, &to, amount, false))
     }
 
@@ -357,7 +346,7 @@ mod tests {
         let tx = b.send_money(&s, "01812345678", Bdt(500)).unwrap();
         assert_eq!(tx.amount, Bdt(500));
         assert!(!tx.incoming);
-        assert_eq!(crate::domain::is_valid_trx_id(&tx.trx_id), true);
+        assert!(crate::domain::is_valid_trx_id(&tx.trx_id));
         assert_eq!(b.balance(&s).unwrap(), Bdt(before.0 - 500));
         assert_eq!(b.history(&s).unwrap()[0].trx_id, tx.trx_id);
     }

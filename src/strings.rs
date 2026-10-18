@@ -62,10 +62,10 @@ pub fn urls(runs: &[String]) -> Vec<String> {
                 })
                 .unwrap_or(tail.len());
             let candidate = tail[..end].trim_end_matches(['.', ',', ')', ']', ';']);
-            if candidate.starts_with("http://") || candidate.starts_with("https://") {
-                if candidate.len() > 12 {
-                    seen.insert(candidate.to_string());
-                }
+            if candidate.len() > 12
+                && (candidate.starts_with("http://") || candidate.starts_with("https://"))
+            {
+                seen.insert(candidate.to_string());
             }
         }
     }
