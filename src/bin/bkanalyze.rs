@@ -9,9 +9,10 @@ use bkash_native::strings::{printable_runs, urls, DEFAULT_MIN_LEN};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = std::env::args().skip(1);
-    let path = PathBuf::from(args.next().ok_or(
-        "usage: bkanalyze <libapp.so|apk> [--urls] [--symbols] [--min N] [--cap N]",
-    )?);
+    let path = PathBuf::from(
+        args.next()
+            .ok_or("usage: bkanalyze <libapp.so|apk> [--urls] [--symbols] [--min N] [--cap N]")?,
+    );
     let mut want_urls = false;
     let mut want_symbols = false;
     let mut want_features = false;
@@ -52,7 +53,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     s.name, s.offset, s.size, desc
                 );
             }
-            if let Some(data) = sections.iter().find(|s| s.name == "_kDartIsolateSnapshotData") {
+            if let Some(data) = sections
+                .iter()
+                .find(|s| s.name == "_kDartIsolateSnapshotData")
+            {
                 println!("  isolate data usable payload: {} bytes", data.size);
             }
         }
@@ -79,13 +83,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "\n== string pool ==\n  printable runs >= {min_len} bytes: {} ({} lower bound)",
         runs.len(),
-        if truncated { "truncated sample, counts are" } else { "complete scan, counts are" }
+        if truncated {
+            "truncated sample, counts are"
+        } else {
+            "complete scan, counts are"
+        }
     );
 
     if want_urls {
         let found = urls(&runs);
         println!("  absolute URLs: {}", found.len());
-        for u in found.iter().filter(|u| u.contains("bka.sh") || u.contains("bkash")) {
+        for u in found
+            .iter()
+            .filter(|u| u.contains("bka.sh") || u.contains("bkash"))
+        {
             println!("    {u}");
         }
     }
@@ -102,8 +113,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     return s.len() <= 96;
                 }
                 s.len() <= 64
-                    && s.chars().next().is_some_and(|c| c.is_ascii_uppercase() || c == '_')
-                    && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.')
+                    && s.chars()
+                        .next()
+                        .is_some_and(|c| c.is_ascii_uppercase() || c == '_')
+                    && s.chars()
+                        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.')
                     && s.chars().filter(|c| c.is_ascii_uppercase()).count() >= 2
             })
             .cloned()
@@ -115,15 +129,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         println!("  i18n keys                : {}", inv.i18n_keys.count);
         println!("  blocs                    : {}", inv.blocs.count);
-        println!("  bloc states/events       : {}", inv.bloc_states_and_events.count);
+        println!(
+            "  bloc states/events       : {}",
+            inv.bloc_states_and_events.count
+        );
         println!("  screens/routes           : {}", inv.screens.count);
-        println!("  repositories/use cases   : {}", inv.repositories_and_use_cases.count);
+        println!(
+            "  repositories/use cases   : {}",
+            inv.repositories_and_use_cases.count
+        );
         println!("  vendored packages        : {}", inv.package_uris.len());
-        for label in [
-            "screens",
-            "blocs",
-            "repositories_and_use_cases",
-        ] {
+        for label in ["screens", "blocs", "repositories_and_use_cases"] {
             let bucket = match label {
                 "screens" => &inv.screens,
                 "blocs" => &inv.blocs,

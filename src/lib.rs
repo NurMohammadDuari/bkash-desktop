@@ -17,7 +17,9 @@ pub mod strings;
 
 pub use domain::{AccessToken, DART_PACKAGE, ENDPOINTS, GATEWAYS, SNAPSHOT_HASH};
 pub use features::{classify, FeatureInventory};
-pub use gateway::{DeviceIdentity, Gateway, GatewayResponse, HttpRequest, MockTransport, Transport};
+pub use gateway::{
+    DeviceIdentity, Gateway, GatewayResponse, HttpRequest, MockTransport, Transport,
+};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

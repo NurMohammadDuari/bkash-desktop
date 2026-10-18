@@ -44,7 +44,6 @@ enum Reply {
     Err(BackendError),
 }
 
-
 impl eframe::App for BkashApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let theme = Theme::dark();
@@ -192,7 +191,9 @@ impl BkashApp {
         if t.is_empty() {
             return Err(BackendError::BadAmount);
         }
-        t.parse::<i64>().map(Bdt).map_err(|_| BackendError::BadAmount)
+        t.parse::<i64>()
+            .map(Bdt)
+            .map_err(|_| BackendError::BadAmount)
     }
 
     /// Top bar + sidebar + content.
@@ -202,7 +203,11 @@ impl BkashApp {
         egui::SidePanel::left("nav")
             .exact_width(232.0)
             .resizable(false)
-            .frame(egui::Frame::new().fill(t.bg_top).inner_margin(egui::Margin::ZERO))
+            .frame(
+                egui::Frame::new()
+                    .fill(t.bg_top)
+                    .inner_margin(egui::Margin::ZERO),
+            )
             .show(ctx, |ui| {
                 t.sidebar_frame().show(ui, |ui| {
                     ui.horizontal(|ui| {
@@ -228,7 +233,11 @@ impl BkashApp {
                             self.screen = Screen::History;
                         }
                     } else {
-                        ui.label(RichText::new("Sign in to continue").size(13.0).color(t.text_dim));
+                        ui.label(
+                            RichText::new("Sign in to continue")
+                                .size(13.0)
+                                .color(t.text_dim),
+                        );
                     }
 
                     ui.add_space(20.0);
@@ -274,7 +283,9 @@ impl BkashApp {
     }
 
     fn status_banner(&mut self, ui: &mut egui::Ui, t: &Theme) {
-        let Some((msg, ok)) = self.status.clone() else { return };
+        let Some((msg, ok)) = self.status.clone() else {
+            return;
+        };
         let color = if ok { t.positive } else { t.negative };
         egui::Frame::new()
             .fill(color.gamma_multiply(0.16))
@@ -372,9 +383,15 @@ impl BkashApp {
     }
 
     fn home_ui(&mut self, ui: &mut egui::Ui, t: &Theme) {
-        let Some(session) = self.session.clone() else { return };
+        let Some(session) = self.session.clone() else {
+            return;
+        };
         title(ui, &session.account.name, t);
-        ui.label(RichText::new(&session.account.masked_mobile).size(13.0).color(t.text_dim));
+        ui.label(
+            RichText::new(&session.account.masked_mobile)
+                .size(13.0)
+                .color(t.text_dim),
+        );
         ui.add_space(18.0);
 
         t.frame().show(ui, |ui| {
@@ -427,12 +444,20 @@ impl BkashApp {
                 ui.horizontal(|ui| {
                     ui.vertical(|ui| {
                         ui.label(
-                            RichText::new(format!("{}{}", if tx.incoming { "+" } else { "−" }, tx.amount.format()))
-                                .size(16.0)
-                                .color(color)
-                                .strong(),
+                            RichText::new(format!(
+                                "{}{}",
+                                if tx.incoming { "+" } else { "−" },
+                                tx.amount.format()
+                            ))
+                            .size(16.0)
+                            .color(color)
+                            .strong(),
                         );
-                        ui.label(RichText::new(kind_label(tx.kind)).size(12.0).color(t.text_dim));
+                        ui.label(
+                            RichText::new(kind_label(tx.kind))
+                                .size(12.0)
+                                .color(t.text_dim),
+                        );
                     });
                     ui.add_space(20.0);
                     ui.vertical(|ui| {
@@ -490,9 +515,12 @@ impl BkashApp {
             });
             ui.add_space(8.0);
             ui.label(
-                RichText::new(format!("single-transfer limit {}", Bdt::SINGLE_TX_LIMIT.format()))
-                    .size(12.0)
-                    .color(t.text_dim),
+                RichText::new(format!(
+                    "single-transfer limit {}",
+                    Bdt::SINGLE_TX_LIMIT.format()
+                ))
+                .size(12.0)
+                .color(t.text_dim),
             );
             ui.add_space(20.0);
             ui.horizontal(|ui| {
@@ -503,7 +531,10 @@ impl BkashApp {
                             self.status = None;
                             self.submit(match form {
                                 TxForm::Send => Job::Send { to: target, amount },
-                                TxForm::CashOut => Job::CashOut { agent: target, amount },
+                                TxForm::CashOut => Job::CashOut {
+                                    agent: target,
+                                    amount,
+                                },
                             });
                             self.screen = Screen::Home;
                         }

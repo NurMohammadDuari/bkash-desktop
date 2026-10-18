@@ -33,7 +33,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let backend: Arc<dyn Backend> = if live {
-        Arc::new(LiveBackend::new(&base).map_err(|e| -> Box<dyn std::error::Error> { Box::new(e) })?)
+        Arc::new(
+            LiveBackend::new(&base).map_err(|e| -> Box<dyn std::error::Error> { Box::new(e) })?,
+        )
     } else {
         ui::simulated()
     };

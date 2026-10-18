@@ -3,8 +3,8 @@
 //! Kept in the library (not in a binary) so the desktop app and the CLI share
 //! exactly one HTTP implementation. TLS is rustls; no system OpenSSL needed.
 
-use anyhow::{bail, Result};
 use crate::gateway::{HttpRequest, Transport};
+use anyhow::{bail, Result};
 
 pub struct HttpTransport {
     pub client: reqwest::blocking::Client,

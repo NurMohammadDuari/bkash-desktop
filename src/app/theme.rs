@@ -144,13 +144,7 @@ pub fn section_label(ui: &mut egui::Ui, text: &str, t: &Theme) {
 }
 
 /// A sidebar nav row. Returns true when clicked.
-pub fn nav_item(
-    ui: &mut egui::Ui,
-    icon: &str,
-    label: &str,
-    selected: bool,
-    t: &Theme,
-) -> bool {
+pub fn nav_item(ui: &mut egui::Ui, icon: &str, label: &str, selected: bool, t: &Theme) -> bool {
     let (fill, text_color) = if selected {
         (t.accent.gamma_multiply(0.22), t.text)
     } else {
@@ -164,7 +158,11 @@ pub fn nav_item(
                 .inner_margin(egui::Margin::symmetric(10, 8))
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
-                        ui.label(RichText::new(icon).size(15.0).color(if selected { t.accent } else { t.text_dim }));
+                        ui.label(RichText::new(icon).size(15.0).color(if selected {
+                            t.accent
+                        } else {
+                            t.text_dim
+                        }));
                         ui.label(RichText::new(label).size(14.0).color(text_color));
                     });
                 })
@@ -181,7 +179,10 @@ pub fn nav_item(
 /// Primary accent button, sized like an Apple filled button.
 pub fn primary_button(ui: &mut egui::Ui, label: &str, t: &Theme) -> bool {
     let btn = egui::Button::new(
-        RichText::new(label).size(15.0).color(Color32::WHITE).strong(),
+        RichText::new(label)
+            .size(15.0)
+            .color(Color32::WHITE)
+            .strong(),
     )
     .fill(t.accent)
     .stroke(Stroke::NONE)
@@ -203,12 +204,7 @@ pub fn secondary_button(ui: &mut egui::Ui, label: &str, t: &Theme) -> bool {
 /// Right-aligned dim monospace metadata (a `trx_id`, a gateway host).
 pub fn meta_label(ui: &mut egui::Ui, text: &str, t: &Theme) {
     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-        ui.label(
-            RichText::new(text)
-                .size(11.0)
-                .color(t.text_dim)
-                .monospace(),
-        );
+        ui.label(RichText::new(text).size(11.0).color(t.text_dim).monospace());
     });
 }
 
@@ -221,7 +217,8 @@ mod tests {
         let t = Theme::dark();
         // Luma of text must clear the card fill by a wide margin, or the UI is
         // unreadable. Computed on the sRGB byte values, not perceptually.
-        let luma = |c: Color32| 0.2126 * c.r() as f32 + 0.7152 * c.g() as f32 + 0.0722 * c.b() as f32;
+        let luma =
+            |c: Color32| 0.2126 * c.r() as f32 + 0.7152 * c.g() as f32 + 0.0722 * c.b() as f32;
         assert!(luma(t.text) - luma(t.card) > 80.0);
         assert!(luma(t.text_dim) - luma(t.card) > 30.0);
     }

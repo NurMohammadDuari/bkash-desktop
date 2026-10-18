@@ -193,7 +193,9 @@ pub fn dynamic_symbols(bytes: &[u8]) -> Result<Vec<Symbol>, ElfError> {
     for i in 0..count {
         let base = sym_off as usize + i * entsize;
         let name_idx = rd32(bytes, base)?;
-        let info = *bytes.get(base + 4).ok_or(ElfError::Truncated("sym entry".into()))?;
+        let info = *bytes
+            .get(base + 4)
+            .ok_or(ElfError::Truncated("sym entry".into()))?;
         let shndx = rd16(bytes, base + 6)?;
         let value = rd64(bytes, base + 8)?;
         let size = rd64(bytes, base + 16)?;
@@ -281,15 +283,16 @@ mod tests {
         buf[0x3c..0x3e].copy_from_slice(&(SHNUM as u16).to_le_bytes());
         buf[0x3e..0x40].copy_from_slice(&3u16.to_le_bytes()); // e_shstrndx -> .shstrtab
 
-        let mut put = |i: usize, name: u32, ty: u32, off: u64, size: u64, link: u32, entsize: u64| {
-            let b = shoff + i * shentsize;
-            buf[b..b + 4].copy_from_slice(&name.to_le_bytes());
-            buf[b + 4..b + 8].copy_from_slice(&ty.to_le_bytes());
-            buf[b + 0x18..b + 0x20].copy_from_slice(&off.to_le_bytes());
-            buf[b + 0x20..b + 0x28].copy_from_slice(&size.to_le_bytes());
-            buf[b + 0x28..b + 0x2c].copy_from_slice(&link.to_le_bytes());
-            buf[b + 0x38..b + 0x40].copy_from_slice(&entsize.to_le_bytes());
-        };
+        let mut put =
+            |i: usize, name: u32, ty: u32, off: u64, size: u64, link: u32, entsize: u64| {
+                let b = shoff + i * shentsize;
+                buf[b..b + 4].copy_from_slice(&name.to_le_bytes());
+                buf[b + 4..b + 8].copy_from_slice(&ty.to_le_bytes());
+                buf[b + 0x18..b + 0x20].copy_from_slice(&off.to_le_bytes());
+                buf[b + 0x20..b + 0x28].copy_from_slice(&size.to_le_bytes());
+                buf[b + 0x28..b + 0x2c].copy_from_slice(&link.to_le_bytes());
+                buf[b + 0x38..b + 0x40].copy_from_slice(&entsize.to_le_bytes());
+            };
 
         put(1, 19, 3, dynstr_off as u64, dynstr.len() as u64, 0, 0);
         put(2, 11, 11, dynsym_off as u64, symtab.len() as u64, 1, 24);
@@ -321,7 +324,9 @@ mod tests {
     fn parses_sized_dynamic_symbol() {
         // Dart magic 0xdcdcf5f5 in little-endian byte order.
         // magic, length=0x4177, kind=0, version=3, then the 16-byte hash.
-        let mut payload = vec![0xf5u8, 0xf5, 0xdc, 0xdc, 0x77, 0x41, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0];
+        let mut payload = vec![
+            0xf5u8, 0xf5, 0xdc, 0xdc, 0x77, 0x41, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,
+        ];
         payload.extend_from_slice(&[0u8; 4]);
         payload.extend_from_slice(b"1ce86630892e2dca");
         let elf = synth_elf("sized_symbol", 0x400, payload.len() as u64, &payload);
@@ -348,7 +353,10 @@ mod tests {
 
     #[test]
     fn rejects_non_elf_and_wrong_machine() {
-        assert_eq!(dynamic_symbols(b"not an elf at all, padded out to length"), Err(ElfError::NotElf64));
+        assert_eq!(
+            dynamic_symbols(b"not an elf at all, padded out to length"),
+            Err(ElfError::NotElf64)
+        );
         let mut elf = synth_elf("s", 0x400, 8, &[0u8; 8]);
         elf[18..20].copy_from_slice(&62u16.to_le_bytes()); // EM_X86_64
         assert_eq!(dynamic_symbols(&elf), Err(ElfError::WrongMachine));

@@ -10,9 +10,9 @@
 
 use std::sync::{Arc, Mutex};
 
+use super::http::HttpTransport;
 use crate::domain::normalize_mobile;
 use crate::gateway::{DeviceIdentity, Gateway, Transport};
-use super::http::HttpTransport;
 
 use super::model::{generate_trx_id, Account, Bdt, OtpChallenge, Session, Transaction, TxKind};
 
@@ -158,7 +158,11 @@ impl Backend for SimulatedBackend {
         let code = format!("{:06}", seed % 1_000_000);
         self.state.lock().expect("sim state lock").last_otp = code.clone();
         Ok(OtpChallenge {
-            masked_destination: format!("{}-{}", &digits[digits.len() - 11..digits.len() - 7], &digits[digits.len() - 7..]),
+            masked_destination: format!(
+                "{}-{}",
+                &digits[digits.len() - 11..digits.len() - 7],
+                &digits[digits.len() - 7..]
+            ),
             demo_code: Some(code),
         })
     }
@@ -194,19 +198,38 @@ impl Backend for SimulatedBackend {
         Ok(self.state.lock().expect("sim state lock").balance)
     }
 
-    fn send_money(&self, _s: &Session, to_mobile: &str, amount: Bdt) -> Result<Transaction, BackendError> {
+    fn send_money(
+        &self,
+        _s: &Session,
+        to_mobile: &str,
+        amount: Bdt,
+    ) -> Result<Transaction, BackendError> {
         let to = normalize_mobile(to_mobile).ok_or(BackendError::BadMobile)?;
-        validate_amount(amount, self.balance(&Session {
-            account: Account { name: String::new(), masked_mobile: String::new(), balance: Bdt::ZERO },
-            token: String::new(),
-        }).unwrap_or(Bdt::ZERO)).or_else(|e| match e {
+        validate_amount(
+            amount,
+            self.balance(&Session {
+                account: Account {
+                    name: String::new(),
+                    masked_mobile: String::new(),
+                    balance: Bdt::ZERO,
+                },
+                token: String::new(),
+            })
+            .unwrap_or(Bdt::ZERO),
+        )
+        .or_else(|e| match e {
             BackendError::InsufficientFunds => Err(BackendError::InsufficientFunds),
             other => Err(other),
         })?;
         Ok(self.record(TxKind::SendMoney, &to, amount, false))
     }
 
-    fn cash_out(&self, _s: &Session, agent: &str, amount: Bdt) -> Result<Transaction, BackendError> {
+    fn cash_out(
+        &self,
+        _s: &Session,
+        agent: &str,
+        amount: Bdt,
+    ) -> Result<Transaction, BackendError> {
         let a = normalize_mobile(agent).ok_or(BackendError::BadMobile)?;
         let bal = self.state.lock().expect("sim state lock").balance;
         if bal <= Bdt::ZERO {
@@ -229,9 +252,8 @@ pub struct LiveBackend {
 
 impl LiveBackend {
     pub fn new(base_url: &str) -> Result<Self, BackendError> {
-        let transport: Arc<dyn Transport> = Arc::new(
-            HttpTransport::new().map_err(|e| BackendError::Live(e.to_string()))?,
-        );
+        let transport: Arc<dyn Transport> =
+            Arc::new(HttpTransport::new().map_err(|e| BackendError::Live(e.to_string()))?);
         Ok(Self {
             gateway: Mutex::new(Gateway::new(
                 transport.clone(),
@@ -319,7 +341,10 @@ mod tests {
             b.verify_otp("01712345678", "000000").unwrap_err(),
             BackendError::WrongOtp
         );
-        assert_eq!(b.verify_otp("01712345678", "12").unwrap_err(), BackendError::BadOtp);
+        assert_eq!(
+            b.verify_otp("01712345678", "12").unwrap_err(),
+            BackendError::BadOtp
+        );
         let s = b.verify_otp("01712345678", &demo_code(&b)).unwrap();
         assert!(s.token.starts_with("demo-"));
     }
@@ -361,7 +386,8 @@ mod tests {
         let s = demo_session(&b);
         let balance = b.balance(&s).unwrap();
         assert_eq!(
-            b.send_money(&s, "01812345678", Bdt(balance.0 + 1)).unwrap_err(),
+            b.send_money(&s, "01812345678", Bdt(balance.0 + 1))
+                .unwrap_err(),
             BackendError::InsufficientFunds
         );
     }
@@ -370,7 +396,10 @@ mod tests {
     fn cash_out_requires_a_funded_account_and_valid_agent() {
         let b = SimulatedBackend::new();
         let s = demo_session(&b);
-        assert_eq!(b.cash_out(&s, "123", Bdt(100)).unwrap_err(), BackendError::BadMobile);
+        assert_eq!(
+            b.cash_out(&s, "123", Bdt(100)).unwrap_err(),
+            BackendError::BadMobile
+        );
         assert!(b.cash_out(&s, "01812345678", Bdt(1_000)).is_ok());
     }
 
@@ -391,6 +420,9 @@ mod tests {
         let h = b.history(&s).unwrap();
         assert!(h.len() >= 4);
         assert_eq!(h[0].kind, TxKind::Payment);
-        assert!(h.iter().take(50).all(|t| crate::domain::is_valid_trx_id(&t.trx_id)));
+        assert!(h
+            .iter()
+            .take(50)
+            .all(|t| crate::domain::is_valid_trx_id(&t.trx_id)));
     }
 }

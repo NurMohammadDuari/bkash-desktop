@@ -69,7 +69,10 @@ pub const ENDPOINTS: &[&str] = &[
 /// The length bound is inferred from the send-money validation strings in the
 /// snapshot; it is an inference, not a directly observed constraint.
 pub fn is_valid_trx_id(trx_id: &str) -> bool {
-    trx_id.len() == 10 && trx_id.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
+    trx_id.len() == 10
+        && trx_id
+            .bytes()
+            .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit())
 }
 
 /// Bangladeshi mobile numbers: 11 digits, leading `1`, operator prefix `3`–`9`.

@@ -6,10 +6,9 @@
 use std::sync::Arc;
 
 use anyhow::{bail, Result};
-use bkash_native::gateway::{DeviceIdentity, Gateway, HttpRequest, Transport};
 use bkash_native::app::http::HttpTransport;
+use bkash_native::gateway::{DeviceIdentity, Gateway, HttpRequest, Transport};
 use bkash_native::{domain, VERSION};
-
 
 fn usage() -> ! {
     eprintln!(
@@ -27,8 +26,7 @@ USAGE:
 fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .init();
 
@@ -59,9 +57,12 @@ fn main() -> Result<()> {
                 DeviceIdentity::default(),
             );
             println!("POST {}{}", gw_base(&gw), "otp/send");
-            println!("{}", serde_json::to_string_pretty(&serde_json::json!({
-                "mobile_number": mobile, "code_length": 6
-            }))?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "mobile_number": mobile, "code_length": 6
+                }))?
+            );
             println!("\nPOST {}{}", gw_base(&gw), "otp/verify");
             println!(
                 "{}",

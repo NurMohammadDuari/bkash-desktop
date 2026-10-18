@@ -55,7 +55,10 @@ pub fn urls(runs: &[String]) -> Vec<String> {
             let end = tail
                 .find(|c: char| {
                     c.is_whitespace()
-                        || matches!(c, '"' | '\'' | '<' | '>' | '[' | '\\' | ')' | ']' | '{' | '}')
+                        || matches!(
+                            c,
+                            '"' | '\'' | '<' | '>' | '[' | '\\' | ')' | ']' | '{' | '}'
+                        )
                 })
                 .unwrap_or(tail.len());
             let candidate = tail[..end].trim_end_matches(['.', ',', ')', ']', ';']);
@@ -108,7 +111,10 @@ mod tests {
 
     #[test]
     fn plain_http_is_kept_and_junk_is_not() {
-        let runs = vec!["http://zc-face.assets.alipay.net/x.html".to_string(), "x".to_string()];
+        let runs = vec![
+            "http://zc-face.assets.alipay.net/x.html".to_string(),
+            "x".to_string(),
+        ];
         assert_eq!(urls(&runs).len(), 1);
     }
 }

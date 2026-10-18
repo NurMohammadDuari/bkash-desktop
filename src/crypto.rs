@@ -17,9 +17,9 @@
 use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt, KeyIvInit};
 use base64::engine::general_purpose::STANDARD as B64;
 use base64::Engine as _;
-use rsa::rand_core::OsRng;
 use rsa::pkcs1::DecodeRsaPublicKey as _;
 use rsa::pkcs8::DecodePublicKey as _;
+use rsa::rand_core::OsRng;
 use rsa::traits::PublicKeyParts;
 use rsa::{Oaep, RsaPublicKey};
 use sha2::Sha256;
@@ -47,7 +47,10 @@ fn pkcs7_unpad(padded: &[u8], block: usize) -> Result<&[u8], CryptoError> {
     if pad == 0 || pad > block || pad > padded.len() {
         return Err(CryptoError::BadPadding);
     }
-    if !padded[padded.len() - pad..].iter().all(|&b| b as usize == pad) {
+    if !padded[padded.len() - pad..]
+        .iter()
+        .all(|&b| b as usize == pad)
+    {
         return Err(CryptoError::BadPadding);
     }
     Ok(&padded[..padded.len() - pad])
@@ -241,7 +244,10 @@ mod tests {
     #[test]
     fn rejects_truncated_and_misaligned_envelopes() {
         let c = SessionCrypto::from_bytes(&KEY).unwrap();
-        assert_eq!(c.decrypt(&[0u8; 8]).unwrap_err(), CryptoError::NotBlockAligned);
+        assert_eq!(
+            c.decrypt(&[0u8; 8]).unwrap_err(),
+            CryptoError::NotBlockAligned
+        );
         let mut short = vec![0u8; AES_BLOCK_LEN + 20];
         assert_eq!(c.decrypt(&short).unwrap_err(), CryptoError::NotBlockAligned);
         short.clear();
@@ -268,8 +274,10 @@ mod tests {
             CryptoError::BadKeyLen(_)
         ));
         assert!(matches!(
-            SessionCrypto::from_hex("zzzz000000000000000000000000000000000000000000000000000000000000")
-                .unwrap_err(),
+            SessionCrypto::from_hex(
+                "zzzz000000000000000000000000000000000000000000000000000000000000"
+            )
+            .unwrap_err(),
             CryptoError::Base64(_)
         ));
     }
@@ -296,9 +304,7 @@ mod tests {
             .to_pkcs1_pem(rsa::pkcs1::LineEnding::LF)
             .unwrap();
         let wrapped = c.wrap_key(&pem).unwrap();
-        let back = priv_key
-            .decrypt(Oaep::new::<Sha256>(), &wrapped)
-            .unwrap();
+        let back = priv_key.decrypt(Oaep::new::<Sha256>(), &wrapped).unwrap();
         assert_eq!(back, KEY);
     }
 }

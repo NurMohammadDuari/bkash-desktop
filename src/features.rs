@@ -24,7 +24,7 @@ pub struct FeatureInventory {
     /// `...Bloc` singletons.
     pub blocs: Bucket,
     /// `...State` / `...Event` bloc members. `...Tapped` is included because this
-/// app names interaction events in the past tense (`AmountHotkeyTapped`).
+    /// app names interaction events in the past tense (`AmountHotkeyTapped`).
     pub bloc_states_and_events: Bucket,
     /// `...Page` / `...Screen` routes.
     pub screens: Bucket,
@@ -41,7 +41,8 @@ const MAX_SAMPLES: usize = 12;
 
 fn is_screaming_snake(t: &str) -> bool {
     !t.is_empty()
-        && t.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
+        && t.chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
         && t.chars().any(|c| c.is_ascii_uppercase())
 }
 

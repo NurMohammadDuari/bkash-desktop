@@ -134,7 +134,11 @@ impl Default for DeviceIdentity {
 }
 
 impl Gateway {
-    pub fn new(transport: Arc<dyn Transport>, base: impl Into<String>, device: DeviceIdentity) -> Self {
+    pub fn new(
+        transport: Arc<dyn Transport>,
+        base: impl Into<String>,
+        device: DeviceIdentity,
+    ) -> Self {
         let base = base.into();
         debug_assert!(base.ends_with('/'), "base url must end with /");
         Self {
@@ -183,7 +187,10 @@ impl Gateway {
             "User-Agent".to_string(),
             format!("bKash-Native-Rust/{}", crate::VERSION),
         );
-        headers.insert("device-identity".to_string(), serde_json::to_string(&self.device)?);
+        headers.insert(
+            "device-identity".to_string(),
+            serde_json::to_string(&self.device)?,
+        );
         if let Some(t) = &self.token {
             headers.insert("Authorization".to_string(), t.bearer());
         }
@@ -204,8 +211,7 @@ impl Gateway {
     ) -> Result<GatewayResponse<T>> {
         let req = self.build(method, path, body)?;
         let raw = self.transport.send(req)?;
-        serde_json::from_str(&raw)
-            .map_err(|e| anyhow!("decode {path}: {e}; body was {raw}"))
+        serde_json::from_str(&raw).map_err(|e| anyhow!("decode {path}: {e}; body was {raw}"))
     }
 
     pub fn pre_init(&self) -> Result<GatewayResponse<serde_json::Value>> {
@@ -251,13 +257,20 @@ mod tests {
 
     #[test]
     fn otp_send_uses_observed_path_and_header() {
-        let g = gw(vec![r#"{"status":"success","trx_id":"1ABCDEFGHI","success":true}"#]);
+        let g = gw(vec![
+            r#"{"status":"success","trx_id":"1ABCDEFGHI","success":true}"#,
+        ]);
         let res = g.send_otp("+8801712345678", 6).unwrap();
         assert!(res.is_ok());
         let seen = g.transport_name();
         assert_eq!(seen, "mock");
-        let req = g.call::<serde_json::Value>("GET", "auth/app-status", None).err();
-        assert!(req.is_some(), "mock queue exhausted proves only one send happened");
+        let req = g
+            .call::<serde_json::Value>("GET", "auth/app-status", None)
+            .err();
+        assert!(
+            req.is_some(),
+            "mock queue exhausted proves only one send happened"
+        );
     }
 
     #[test]
@@ -272,7 +285,9 @@ mod tests {
             });
             g
         };
-        let req = g.build("POST", "auth/login", Some(&serde_json::json!({}))).unwrap();
+        let req = g
+            .build("POST", "auth/login", Some(&serde_json::json!({})))
+            .unwrap();
         assert_eq!(req.headers.get("Authorization").unwrap(), "Bearer T");
         assert_eq!(req.headers.get("Content-Type").unwrap(), "application/json");
         assert!(req.url.ends_with("gateway/api/auth/login"));
@@ -298,9 +313,19 @@ mod tests {
     #[test]
     fn mock_records_requests_in_order() {
         let t = MockTransport::new("mock", vec!["a".into(), "b".into()]);
-        let g = Gateway::new(t.clone(), Gateway::default_base(), DeviceIdentity::default());
-        g.build("GET", "auth/app-status", None).map(|r| t.send(r)).unwrap().unwrap();
-        g.build("GET", "auth/appStatus", None).map(|r| t.send(r)).unwrap().unwrap();
+        let g = Gateway::new(
+            t.clone(),
+            Gateway::default_base(),
+            DeviceIdentity::default(),
+        );
+        g.build("GET", "auth/app-status", None)
+            .map(|r| t.send(r))
+            .unwrap()
+            .unwrap();
+        g.build("GET", "auth/appStatus", None)
+            .map(|r| t.send(r))
+            .unwrap()
+            .unwrap();
         let urls: Vec<String> = t.requests().into_iter().map(|r| r.url).collect();
         assert_eq!(urls.len(), 2);
         assert!(urls[0].ends_with("auth/app-status"));
