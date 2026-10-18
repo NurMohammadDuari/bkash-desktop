@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bKash Desktop — native Rust client that runs on your PC, no emulator</title>
+<meta name="description" content="bKash Desktop is a native Rust reimplementation of the bKash Android app. Runs directly on Windows, macOS and Linux with no emulator, no Android and no APK. Includes a Dart AOT snapshot decoder and API surface recovery tooling.">
+<meta name="keywords" content="bkash desktop, bkash for pc, bkash linux, bkash windows, bkash rust, bkash without emulator, run bkash on pc, dart aot snapshot, flutter reverse engineering, egui desktop app, bangladesh mobile banking alternative">
+<meta name="author" content="bkash-desktop contributors">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://bkash-desktop.example/">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="bKash Desktop — native Rust client, no emulator">
+<meta property="og:description" content="Run a bKash-style client natively on your PC in Rust. No emulator, no Android, no APK at runtime.">
+<meta property="og:url" content="https://bkash-desktop.example/">
+<meta property="og:site_name" content="bKash Desktop">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="bKash Desktop — native Rust client">
+<meta name="twitter:description" content="Native Rust reimplementation of the bKash Android app. No emulator required.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "bKash Desktop",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Linux, Windows, macOS",
+  "programmingLanguage": "Rust",
+  "description": "Native Rust reimplementation of the bKash Android client that runs on a desktop without an emulator.",
+  "softwareRequirements": "Rust 1.75+, OpenGL 3.3 or Vulkan",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "keywords": "bkash, rust, desktop, no emulator, flutter reverse engineering, dart aot"
+}
+</script>
+
+<style>
+  :root {
+    --bg: #0d0d10;
+    --panel: #17171c;
+    --card: #1f1f26;
+    --stroke: rgba(255,255,255,.09);
+    --text: #f2f2f7;
+    --dim: #9898a3;
+    --accent: #e91e63;
+    --ok: #30d158;
+    --radius: 16px;
+    --max: 1080px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: linear-gradient(180deg, #18181b 0%, var(--bg) 45%);
+    color: var(--text);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: saturate(180%) blur(20px);
+    background: rgba(13,13,16,.72);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .bar { display: flex; align-items: center; gap: 24px; height: 62px; }
+  .brand { font-size: 20px; font-weight: 700; color: var(--accent); text-decoration: none; }
+  nav { margin-left: auto; display: flex; gap: 22px; }
+  nav a { color: var(--dim); text-decoration: none; font-size: 14.5px; }
+  nav a:hover { color: var(--text); }
+
+  .hero { padding: 88px 0 64px; text-align: center; }
+  .pill {
+    display: inline-block; padding: 5px 13px; border-radius: 999px;
+    border: 1px solid var(--stroke); background: var(--card);
+    color: var(--dim); font-size: 13px; margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(34px, 6vw, 60px); line-height: 1.08; margin: 0 0 18px; letter-spacing: -.02em; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lede { font-size: 19px; color: var(--dim); max-width: 660px; margin: 0 auto 30px; }
+
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 12px 22px; border-radius: 11px;
+    text-decoration: none; font-size: 15px; font-weight: 600;
+    border: 1px solid var(--stroke); transition: transform .12s ease, filter .12s ease;
+  }
+  .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .btn-p { background: var(--accent); color: #fff; border-color: transparent; }
+  .btn-s { background: var(--card); color: var(--text); }
+
+  pre {
+    background: #0a0a0c; border: 1px solid var(--stroke); border-radius: var(--radius);
+    padding: 18px 20px; overflow-x: auto; font-size: 14px; line-height: 1.55;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  p code { background: var(--card); padding: 2px 6px; border-radius: 6px; font-size: 14px; }
+
+  section { padding: 56px 0; }
+  h2 { font-size: 30px; letter-spacing: -.015em; margin: 0 0 10px; }
+  .sub { color: var(--dim); margin: 0 0 28px; max-width: 640px; }
+  h3 { font-size: 17px; margin: 0 0 6px; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .card {
+    background: var(--card); border: 1px solid var(--stroke);
+    border-radius: var(--radius); padding: 22px;
+  }
+  .card p { color: var(--dim); font-size: 14.5px; margin: 0; }
+  .yes { color: var(--ok); } .no { color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--stroke); }
+  th { color: var(--dim); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  td small { color: var(--dim); display: block; font-size: 13px; }
+
+  .stat { text-align: center; }
+  .stat b { display: block; font-size: 38px; letter-spacing: -.02em; }
+  .stat span { color: var(--dim); font-size: 14px; }
+  .stats { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 30px 0; }
+
+  details { background: var(--card); border: 1px solid var(--stroke); border-radius: 12px; padding: 16px 20px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { color: var(--dim); margin: 12px 0 0; }
+
+  footer { border-top: 1px solid var(--stroke); color: var(--dim); font-size: 14px; padding: 34px 0 60px; }
+  footer a { color: var(--dim); }
+  .warn { border-left: 3px solid var(--accent); padding: 14px 18px; background: rgba(233,30,99,.07); border-radius: 0 10px 10px 0; color: var(--dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#top">bKash Desktop</a>
+    <nav>
+      <a href="#what">What it is</a>
+      <a href="#install">Install</a>
+      <a href="#status">Status</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/OWNER/bkash-desktop">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <span class="pill">Rust · egui · X11, Windows, macOS</span>
+    <h1>A bKash client that runs <em>natively on your PC</em></h1>
+    <p class="lede">
+      bKash ships as a Flutter app, so there is no Kotlin to port — the logic is ARM64
+      machine code inside a 30&nbsp;MB Dart snapshot. This project recovers what is
+      recoverable and rebuilds it as a native Rust desktop binary. No emulator. No Android.
+    </p>
+    <div class="cta">
+      <a class="btn btn-p" href="#install">Download / build</a>
+      <a class="btn btn-s" href="https://github.com/OWNER/bkash-desktop">View source</a>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <pre><code>git clone https://github.com/OWNER/bkash-desktop
+cd bkash-desktop
+cargo build --release
+./target/release/bkash_desktop</code></pre>
+    </div>
+  </section>
+
+  <section id="what">
+    <div class="wrap">
+      <h2>What makes this different</h2>
+      <p class="sub">Every other route to running an Android banking app on a desktop goes through an emulator, a VM, or a cloud device farm. This one doesn't.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>No emulator layer</h3>
+          <p>A native ELF binary. There is no Android runtime in the process at all — not even as a library.</p>
+        </div>
+        <div class="card">
+          <h3>Decodes the real artifact</h3>
+          <p>A dependency-free Rust ELF reader locates and parses the Dart AOT snapshot sections and header. Ghidra found 0 procedures in the same file.</p>
+        </div>
+        <div class="card">
+          <h3>Evidence, not guesses</h3>
+          <p>Gateways, endpoints and crypto markers were recovered from the shipped binary. Every inference is labelled as one.</p>
+        </div>
+        <div class="card">
+          <h3>Testable offline</h3>
+          <p>48 unit tests run with no network. The backend is a trait; the simulated backend exercises every screen.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install</h2>
+      <p class="sub">Requires Rust 1.75 or newer and a GPU with OpenGL 3.3 or Vulkan.</p>
+      <pre><code>cargo install --path .
+
+# or run without installing
+cargo run --release --bin bkash_desktop</code></pre>
+      <p class="sub" style="margin-top:22px">
+        Two more binaries ship alongside it: <code>bkanalyze</code> decodes the Dart snapshot,
+        and <code>bknative</code> exposes the recovered API surface from the command line.
+      </p>
+    </div>
+  </section>
+
+  <section id="status">
+    <div class="wrap">
+      <h2>Status — the honest table</h2>
+      <p class="sub">Most projects hide this. Here it is up front.</p>
+
+      <div class="stats">
+        <div class="card stat"><b>48</b><span>tests passing</span></div>
+        <div class="card stat"><b>0.37s</b><span>30 MB scan</span></div>
+        <div class="card stat"><b>119</b><span>screens recovered</span></div>
+        <div class="card stat"><b>33</b><span>endpoints recovered</span></div>
+      </div>
+
+      <table>
+        <thead><tr><th>Layer</th><th>Status</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Dart AOT snapshot decoding</td><td class="yes">Done</td><td><small>Cross-validated against an independent Ghidra read.</small></td></tr>
+          <tr><td>Crypto scheme</td><td class="yes">Done</td><td><small>AES-256-CBC/PKCS#7 and RSA-OAEP-SHA256, reconstructed from snapshot markers.</small></td></tr>
+          <tr><td>API surface recovery</td><td class="yes">Done</td><td><small>7 gateways and 33 endpoints extracted from the string pool.</small></td></tr>
+          <tr><td>Architecture recovery</td><td class="yes">Done</td><td><small>119 screens, 564 bloc states, 742 i18n keys, exported as JSON.</small></td></tr>
+          <tr><td>Desktop GUI</td><td class="yes">Done</td><td><small>Login, balance, send money, cash out, history — verified running.</small></td></tr>
+          <tr><td>Screen implementation</td><td class="no">Not ported</td><td><small>Recovered as names. Their layout and behaviour must be rebuilt by hand.</small></td></tr>
+          <tr><td>Live authenticated session</td><td class="no">Not implemented</td><td><small>Request and response schemas were never observed, only inferred.</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>Questions people actually ask</h2>
+
+      <details><summary>Can I send real money with this?</summary>
+        <p>No. It ships with an offline simulated backend and performs no live financial
+        transactions. The live backend refuses to create a session. This is a research and
+        interoperability project.</p></details>
+
+      <details><summary>Why can't it log in to the real bKash service?</summary>
+        <p>The blocker is not crypto — that part is implemented. It is that no request or
+        response body was ever captured. The endpoints <code>auth/pre-init</code> and
+        <code>otp/verify</code> are known only as strings plus fragments like
+        <code>PreInit{aesKey:</code>, so the field names and token format are inferred.
+        Building a login on inferred schemas would fail at the server, or worse, appear to
+        work while being wrong.</p></details>
+
+      <details><summary>Is this legal?</summary>
+        <p>It contains no bKash code or assets. It is an independent reimplementation built
+        by static analysis of a publicly obtainable APK, for research and interoperability.
+        It is not affiliated with or endorsed by bKash.</p></details>
+
+      <details><summary>Will it bypass emulator detection on the real app?</summary>
+        <p>No, and it will not. The real app ships <code>libtoolChecker.so</code> and
+        <code>libsecurity_lite.so</code> for tamper and emulator detection. Defeating those
+        controls is out of scope for this project.</p></details>
+
+      <details><summary>Why is the Java decompilation in the repo so thin?</summary>
+        <p>Because there is almost nothing there. Decompiling 26,234 files yields an
+        application whose entire entry point is a three-line
+        <code>onCreate</code> calling <code>super</code>. All the real code is Dart AOT.</p></details>
+
+      <details><summary>Can I help finish the port?</summary>
+        <p>Yes — see <code>docs/PORT-NOTES.md</code>. The highest-value contribution is a
+        capture from a real device on your own account, which converts the inferred API
+        schema into observed truth.</p></details>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="warn">
+        <strong>Not affiliated with bKash.</strong> This is an independent research project.
+        It performs no live financial transactions and ships offline by default.
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>bKash Desktop — MIT licensed. Built with Rust, egui and a lot of reading hex.</p>
+    <p><a href="https://github.com/OWNER/bkash-desktop">Source</a> · <a href="docs/PORT-NOTES.md">Port status</a> · <a href="docs/ANALYSIS.md">Analysis notes</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
