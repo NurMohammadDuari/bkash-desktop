@@ -103,11 +103,74 @@ Gateways recovered (7) — including `api.cde.capp.bka.sh`, `api.ims.bka.sh`,
 `huawei.openfinapi.bka.sh` and `qr.bka.sh`. Relative endpoints recovered: 33,
 including the `auth/*`, `otp/*` and twenty `ffs/loan/v2/*` paths.
 
+## Native libraries
+
+Fourteen ARM64 libraries ship in `split_config.arm64_v8a.apk`. Two are
+security-relevant and were decoded with Ghidra:
+
+### `libsecurity_lite.so` — Alipay SecurityGuard
+
+SHA-256 `e6001d6f5463ec5f8f5a81fee35b67a378bcff8a7db1d0b5aa7a19fc8c794b5a`.
+Stripped, 172 procedures and 154 strings recovered — unlike `libapp.so`, this
+library has ordinary function structure.
+
+Five JNI exports, all from `com.alipay.plus.security.lite.SecurityGuardLiteNative`:
+
+```
+Java_…_init
+Java_…_signRequest
+Java_…_encrypt
+Java_…_decrypt
+Java_…_decryptWithSecurityInfo
+```
+
+plus `parseAPKSign` and a bignum helper set (`bn_assign`, `bn_assign_2exp`,
+`bn_assign_zero`).
+
+**This is Alipay's anti-fraud and request-signing SDK.** Its presence is the
+single most important finding for anyone attempting an interoperable client:
+sensitive requests are signed by a proprietary native library. The signing
+scheme is not recoverable from the shipped binary — it is closed-source Alipay
+code, and its server-side component is not in the APK at all.
+
+### `libtoolChecker.so` — RootBeer
+
+SHA-256 `eeb2317e649e287b836b5e5c30cb07700f9eb900a53c297a3823592f15aa6352`.
+27 procedures, 44 strings.
+
+```
+Java_com_scottyab_rootbeer_RootBeerNative_checkForRoot
+Java_com_scottyab_rootbeer_RootBeerNative_setLogDebugMessages
+_Z6existsPKc            (demangled: exists(char const*))
+```
+
+Log strings confirm the behaviour: `LOOKING FOR BINARY: %s PRESENT!!!` /
+`Absent :(`. This is [RootBeer](https://github.com/scottyab/rootbeer), the
+open-source root detector, built with NDK clang 18.0.1.
+
+### The remaining libraries
+
+`libflutter.so` and `libapp.so` (the Dart payload), `libbarhopper_v3.so` (QR
+scanning), `libface_detector_v2_jni.so`, `libimage_processing_util_jni.so`,
+`libmaplibre.so`, `librive_native.so`, `libtoyger.so` (Alipay face liveness),
+`libgifimage.so`, `libimagepipeline.so`, `libdatastore_shared_counter.so`,
+`libsurface_util_jni.so`.
+
+## The two downloaded bundles are content-identical
+
+`bKash_7.3.5_apkcube.apks` and `…_apkcube2.apks` have different SHA-256
+digests but identical members — same file list, same per-member hashes. Only
+ZIP container metadata differs. There is no second version to compare.
+
 ## Third-party components observed
 
 `assets/hummer_task.json` routes eKYC to Alipay's Zoloz stack (`ZDoc`,
-`ZFace`, `faceGuide`). Native libraries include `libtoolChecker.so` and
-`libsecurity_lite.so` — tamper and emulator detection shipped as native code.
+`ZFace`, `faceGuide`), with the document-select and face-guide web pages hosted
+on `zc-face.assets.alipay.net`.
+
+So three separate Alipay technologies are embedded: **Zoloz** for identity
+verification, **SecurityGuard Lite** for request signing, and **Toyger** for
+face liveness. Root detection is the third-party open-source RootBeer.
 
 ## Not done
 

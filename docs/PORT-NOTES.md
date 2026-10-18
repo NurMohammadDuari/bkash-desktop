@@ -27,6 +27,24 @@ The honest version.
   real class, or a string that happens to look like one.
 * **Live authentication.** The `--live` backend refuses to create a session.
 
+## The signing problem
+
+The two security libraries were decoded with Ghidra and change the picture:
+
+* **`libsecurity_lite.so`** is Alipay **SecurityGuard Lite**, exposing
+  `signRequest`, `encrypt`, `decrypt` and `decryptWithSecurityInfo` over JNI.
+  Sensitive requests are signed by proprietary native code.
+* **`libtoolChecker.so`** is the open-source **RootBeer** root detector.
+
+A faithful interoperable client would need to produce signatures that
+SecurityGuard's *server* accepts. The signing scheme is closed-source Alipay
+code, and its verification counterpart lives on their servers — not in the APK.
+So this is not an inference gap that a capture can close. It is a cryptographic
+dependency on a third party.
+
+This is the concrete reason the live backend refuses to create a session, and
+it is the correct place for this project to stop.
+
 ## Why live auth is not implemented
 
 The blocker is not the crypto — that is implemented. It is that **no request or
