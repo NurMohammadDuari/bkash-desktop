@@ -63,8 +63,8 @@ impl Theme {
         style.visuals.widgets.active.weak_bg_fill = self.accent;
         style.visuals.selection.bg_fill = self.accent.gamma_multiply(0.35);
         style.visuals.selection.stroke = Stroke::NONE;
-        style.visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, self.stroke);
-        style.visuals.window_stroke = Stroke::new(1.0, self.stroke);
+        style.visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0_f32, self.stroke);
+        style.visuals.window_stroke = Stroke::new(1.0_f32, self.stroke);
         style.spacing.item_spacing = Vec2::new(10.0, 10.0);
         style.spacing.button_padding = Vec2::new(16.0, 9.0);
         style.spacing.window_margin = egui::Margin::same(20);
@@ -90,7 +90,7 @@ impl Theme {
     pub fn frame(&self) -> egui::Frame {
         egui::Frame::new()
             .fill(self.card)
-            .stroke(Stroke::new(1.0, self.stroke))
+            .stroke(Stroke::new(1.0_f32, self.stroke))
             .corner_radius(CornerRadius::same(16))
             .inner_margin(egui::Margin::same(20))
     }
@@ -106,7 +106,7 @@ impl Theme {
     /// colour costs more than 64 rects at this size.
     pub fn paint_background(&self, ctx: &egui::Context) {
         let rect = ctx.screen_rect();
-        let mut painter = ctx.layer_painter(egui::LayerId::background());
+        let painter = ctx.layer_painter(egui::LayerId::background());
         painter.rect_filled(rect, 0.0, self.bg_bottom);
         const STRIPS: usize = 64;
         let strip_h = rect.height() / STRIPS as f32;
@@ -194,7 +194,7 @@ pub fn primary_button(ui: &mut egui::Ui, label: &str, t: &Theme) -> bool {
 pub fn secondary_button(ui: &mut egui::Ui, label: &str, t: &Theme) -> bool {
     let btn = egui::Button::new(RichText::new(label).size(14.0).color(t.text))
         .fill(t.card_hover)
-        .stroke(Stroke::new(1.0, t.stroke))
+        .stroke(Stroke::new(1.0_f32, t.stroke))
         .corner_radius(CornerRadius::same(11))
         .min_size(Vec2::new(140.0, 36.0));
     ui.add(btn).clicked()

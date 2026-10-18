@@ -18,9 +18,9 @@ use aes::cipher::{BlockModeDecrypt, BlockModeEncrypt, KeyIvInit};
 use base64::engine::general_purpose::STANDARD as B64;
 use base64::Engine as _;
 use rsa::rand_core::OsRng;
-use rsa::pkcs1::{DecodeRsaPublicKey as _, EncodeRsaPublicKey};
-use rsa::traits::PublicKeyParts;
+use rsa::pkcs1::DecodeRsaPublicKey as _;
 use rsa::pkcs8::DecodePublicKey as _;
+use rsa::traits::PublicKeyParts;
 use rsa::{Oaep, RsaPublicKey};
 use sha2::Sha256;
 
@@ -202,6 +202,7 @@ impl SessionCrypto {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rsa::pkcs1::EncodeRsaPublicKey as _;
 
     const KEY: [u8; AES_KEY_LEN] = [
         0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,

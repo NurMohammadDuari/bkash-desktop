@@ -10,13 +10,6 @@ use bkash_native::gateway::{DeviceIdentity, Gateway, HttpRequest, Transport};
 use bkash_native::app::http::HttpTransport;
 use bkash_native::{domain, VERSION};
 
-fn truncate(s: &str, n: usize) -> String {
-    if s.len() <= n {
-        s.to_string()
-    } else {
-        format!("{}…", &s[..n])
-    }
-}
 
 fn usage() -> ! {
     eprintln!(

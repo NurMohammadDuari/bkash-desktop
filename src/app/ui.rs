@@ -60,7 +60,6 @@ impl eframe::App for BkashApp {
 
 pub struct BkashApp {
     backend: Arc<dyn Backend>,
-    theme_installed: (),
     themed: bool,
     screen: Screen,
     mobile: String,
@@ -138,7 +137,6 @@ impl BkashApp {
 
         Self {
             backend,
-            theme_installed: (),
             themed: false,
             screen: Screen::Login,
             mobile: String::new(),
@@ -280,7 +278,7 @@ impl BkashApp {
         let color = if ok { t.positive } else { t.negative };
         egui::Frame::new()
             .fill(color.gamma_multiply(0.16))
-            .stroke(egui::Stroke::new(1.0, color.gamma_multiply(0.5)))
+            .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.5)))
             .corner_radius(egui::CornerRadius::same(12))
             .inner_margin(egui::Margin::symmetric(16, 10))
             .show(ui, |ui| {
@@ -422,7 +420,7 @@ impl BkashApp {
         let color = if tx.incoming { t.positive } else { t.negative };
         egui::Frame::new()
             .fill(t.card)
-            .stroke(egui::Stroke::new(1.0, t.stroke))
+            .stroke(egui::Stroke::new(1.0_f32, t.stroke))
             .corner_radius(egui::CornerRadius::same(12))
             .inner_margin(egui::Margin::symmetric(16, 12))
             .show(ui, |ui| {
